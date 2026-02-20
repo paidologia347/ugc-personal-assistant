@@ -3,38 +3,45 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "pnpm"
 
-      - name: Install dependencies
-        run: npm install
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+
+      - name: Install dependencies (pnpm, locked)
+        run: pnpm install --frozen-lockfile
 
       - name: Install EAS CLI
-        run: npm install -g eas-cli
+        run: pnpm add -g eas-cli
 
-      - name: Build APK
+      - name: EAS Build APK (preview)
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --platform android --profile preview --non-interactive --wait
 
-      - name: Download build
+      - name: Download latest APK
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           eas build:list --platform android --limit 1 --json > builds.json
-          URL=$(node -e "console.log(require('./builds.json')[0].artifacts.buildUrl)")
-          curl -L $URL -o app-release.apk
+          node -e "const b=require('./builds.json')[0]; const url=(b.artifacts && (b.artifacts.applicationArchiveUrl || b.artifacts.buildUrl)) || b.buildUrl; if(!url){console.error('No artifact URL found'); process.exit(1)} console.log(url)" > url.txt
+          URL=$(cat url.txt)
+          echo "Downloading: $URL"
+          curl -L "$URL" -o app-release.apk
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
