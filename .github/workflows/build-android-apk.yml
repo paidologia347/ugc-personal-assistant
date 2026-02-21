@@ -14,16 +14,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node + cache pnpm
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: pnpm
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Install PNPM
-        run: npm install -g pnpm
+      - name: Enable Corepack (pnpm)
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.5 --activate
+          pnpm --version
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
@@ -41,9 +42,10 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           eas build:list --platform android --limit 1 --json > builds.json
-          node -e "const b=require('./builds.json')[0]; require('fs').writeFileSync('url.txt', b.artifacts.buildUrl)"
+          node -e "const b=require('./builds.json')[0]; if(!b?.artifacts?.buildUrl){console.error('No buildUrl'); process.exit(1)}; require('fs').writeFileSync('url.txt', b.artifacts.buildUrl)"
           URL=$(cat url.txt)
-          curl -L $URL -o app-release.apk
+          echo "Downloading: $URL"
+          curl -L "$URL" -o app-release.apk
           ls -lah app-release.apk
 
       - name: Upload APK artifact
@@ -51,3 +53,4 @@ jobs:
         with:
           name: app-release-apk
           path: app-release.apk
+          if-no-files-found: error
