@@ -1,0 +1,62 @@
+name: Build Android APK (EAS)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies (pnpm)
+        run: pnpm install --frozen-lockfile
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Verify EAS auth
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "❌ Missing EXPO_TOKEN secret. Add it in repo Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          echo "✅ EXPO_TOKEN found."
+
+      - name: Build APK (preview)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --profile preview --non-interactive --wait
+
+      - name: Download latest build APK
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          eas build:list --platform android --limit 1 --json > builds.json
+          node -e "const b=require('./builds.json')[0]; if(!b?.artifacts?.buildUrl){console.error('No buildUrl found in builds.json'); process.exit(1)}; console.log(b.artifacts.buildUrl)" > url.txt
+          URL=$(cat url.txt)
+          echo "Downloading: $URL"
+          curl -L "$URL" -o app-release.apk
+          ls -lah app-release.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: app-release.apk
+          if-no-files-found: error
+```0
