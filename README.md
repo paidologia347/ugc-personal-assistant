@@ -87,7 +87,7 @@ Catatan:
 ## Penjelasan file `youtube_auto_clipper.py` (Auto-Clipper)
 
 File `youtube_auto_clipper.py` adalah skrip utama (entry point) di repositori
-[Auto-Clipper](https://github.com/muhammedfalahh/Auto-clipper.git) yang
+[Auto-Clipper](https://github.com/muhammedfalahh/Auto-Clipper.git) yang
 mengorkestrasi proses pembuatan klip video secara otomatis. Fungsi utamanya:
 
 - Menerima argumen CLI untuk URL YouTube atau file lokal, output directory,
