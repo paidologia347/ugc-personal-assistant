@@ -83,3 +83,19 @@ Feel free to add project screenshots, API documentation, feature descriptions, o
 Catatan:
 - File `eas.json` sudah disiapkan (profile `preview` menghasilkan APK).
 - Pastikan `app.json` sudah punya `android.package` dan `android.versionCode`.
+
+## Penjelasan file `youtube_auto_clipper.py` (Auto-Clipper)
+
+File `youtube_auto_clipper.py` adalah skrip utama (entry point) di repositori
+[Auto-Clipper](https://github.com/muhammedfalahh/Auto-clipper.git) yang
+mengorkestrasi proses pembuatan klip video secara otomatis. Fungsi utamanya:
+
+- Menerima argumen CLI untuk URL YouTube atau file lokal, output directory,
+  durasi maksimal klip, jumlah klip, model Whisper, device (CPU/CUDA), dan mode debug.
+- Mengecek dependensi penting seperti `yt-dlp`, `faster-whisper`, `opencv`,
+  `mediapipe`, serta ketersediaan `ffmpeg`.
+- Menentukan sumber input (URL YouTube, file lokal, atau prompt interaktif).
+- Menjalankan pipeline pemrosesan: download video → analisis audio (Whisper) →
+  optimasi momen paling menarik → pemotongan video lewat `VideoProcessor` →
+  pembuatan ringkasan `clip_summary.txt`.
+- Menampilkan progres dan ringkasan hasil lewat logging.
