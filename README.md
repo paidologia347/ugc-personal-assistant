@@ -73,13 +73,40 @@ This project is private ("private": true). For collaboration inquiries, please c
 ---
 
 Feel free to add project screenshots, API documentation, feature descriptions, or any other information as needed.
-## Build APK (stabil lewat server build)
+## Deploy as a Web App (GitHub Pages)
 
-1) Buat akun Expo, lalu buat Access Token.
-2) Simpan token sebagai secret repository: `EXPO_TOKEN`.
-3) Jalankan workflow **Build Android APK** (manual) atau push ke branch `main`.
-4) Setelah selesai, download file **app-release-apk** di bagian Artifacts (hasilnya `app-release.apk`).
+This project is built with **Expo Router** and exports a static web bundle via
+`expo export --platform web`. A GitHub Actions workflow deploys that bundle to
+**GitHub Pages** on every push to `main`.
 
-Catatan:
-- File `eas.json` sudah disiapkan (profile `preview` menghasilkan APK).
-- Pastikan `app.json` sudah punya `android.package` dan `android.versionCode`.
+### One-time setup
+
+1. In the repository on GitHub, go to **Settings → Pages**.
+2. Under **Build and deployment → Source**, pick **GitHub Actions**.
+3. Push to `main` (or trigger the `Deploy Web to GitHub Pages` workflow
+   manually). The workflow installs deps with pnpm, lints, exports the web
+   bundle, and publishes `dist/` to Pages.
+
+Your site will be available at:
+
+```
+https://<your-username>.github.io/ugc-personal-assistant/
+```
+
+The base path is configured in `app.json` via
+`expo.experiments.baseUrl = "/ugc-personal-assistant"`. If you deploy under a
+different repo name or to a custom domain, update that value accordingly.
+
+### Build the web bundle locally
+
+```bash
+pnpm install
+pnpm expo export --platform web
+# output goes to ./dist
+```
+
+### Run the web dev server
+
+```bash
+pnpm web
+```
