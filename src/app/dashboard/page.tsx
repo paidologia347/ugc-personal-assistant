@@ -1,12 +1,21 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { signOut } from "./actions";
 
 export default async function DashboardPage() {
+  if (!isSupabaseConfigured) {
+    redirect("/login");
+  }
+
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch {
+    user = null;
+  }
 
   if (!user) {
     redirect("/login?redirectTo=/dashboard");
