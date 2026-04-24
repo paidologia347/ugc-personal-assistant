@@ -1,11 +1,22 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+
+async function getCurrentUser() {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    return user;
+  } catch {
+    return null;
+  }
+}
 
 export default async function HomePage() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center gap-10 px-6 py-16 text-center">
@@ -21,6 +32,15 @@ export default async function HomePage() {
           draft scripts, and track your publishing calendar in one place.
         </p>
       </div>
+
+      {!isSupabaseConfigured ? (
+        <div className="max-w-xl rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200">
+          <strong>Heads up:</strong> Supabase environment variables
+          (<code>NEXT_PUBLIC_SUPABASE_URL</code>,{" "}
+          <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>) are not set. Authentication
+          is disabled until you add them in your Vercel project settings.
+        </div>
+      ) : null}
 
       <div className="flex flex-col items-center gap-3 sm:flex-row">
         {user ? (

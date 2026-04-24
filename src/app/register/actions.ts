@@ -4,10 +4,19 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export async function register(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+
+  if (!isSupabaseConfigured) {
+    redirect(
+      `/register?error=${encodeURIComponent(
+        "Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable authentication.",
+      )}`,
+    );
+  }
 
   const origin =
     process.env.NEXT_PUBLIC_SITE_URL ??
